@@ -220,7 +220,7 @@ impl<'a> Signer<'a> {
                 context.sign(message, *key)
             },
             ContextAndKey::ByBox(context, key) => {
-                unimplemented!()
+                context.sign(message, key.as_ref())
             }
         }
     }
@@ -236,7 +236,7 @@ impl<'a> Signer<'a> {
                 context.get_public_key(*key)
             },
             ContextAndKey::ByBox(context, key) => {
-                unimplemented!()
+                context.get_public_key(key.as_ref())
             }
         }
     }
