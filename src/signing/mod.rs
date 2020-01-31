@@ -180,10 +180,14 @@ impl<'a> CryptoFactory<'a> {
     }
 }
 
+enum ContextAndKey<'a> {
+    ByRef(&'a Context, &'a PrivateKey),
+    ByBox(Box<Context>, Box<PrivateKey>),
+}
+
 /// A convenient wrapper of Context and PrivateKey
 pub struct Signer<'a> {
-    context: &'a Context,
-    key: &'a PrivateKey,
+    context_and_key: ContextAndKey<'a>,
 }
 
 impl<'a> Signer<'a> {
@@ -194,7 +198,11 @@ impl<'a> Signer<'a> {
     /// * `context` - a cryptographic context
     /// * `private_key` - private key
     pub fn new(context: &'a Context, key: &'a PrivateKey) -> Self {
-        Signer { context, key }
+        Signer { context_and_key: ContextAndKey::ByRef(context, key) }
+    }
+
+    pub fn new2(context: Box<Context>, key: Box<PrivateKey>) -> Self {
+        Signer { context_and_key: ContextAndKey::ByBox(context, key) }
     }
 
     /// Signs the given message.
@@ -207,7 +215,14 @@ impl<'a> Signer<'a> {
     ///
     /// * `signature` - the signature in a hex-encoded string
     pub fn sign(&self, message: &[u8]) -> Result<String, Error> {
-        self.context.sign(message, self.key)
+        match &self.context_and_key {
+            ContextAndKey::ByRef(context, key) => {
+                context.sign(message, *key)
+            },
+            ContextAndKey::ByBox(context, key) => {
+                unimplemented!()
+            }
+        }
     }
 
     /// Return the public key for this Signer instance.
@@ -216,7 +231,14 @@ impl<'a> Signer<'a> {
     ///
     /// * `public_key` - the public key instance
     pub fn get_public_key(&self) -> Result<Box<PublicKey>, Error> {
-        self.context.get_public_key(self.key)
+        match &self.context_and_key {
+            ContextAndKey::ByRef(context, key) => {
+                context.get_public_key(*key)
+            },
+            ContextAndKey::ByBox(context, key) => {
+                unimplemented!()
+            }
+        }
     }
 }
 
